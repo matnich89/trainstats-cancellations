@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS cancellations
+(
+    date DATE PRIMARY KEY,
+    value INTEGER NOT NULL
+);
