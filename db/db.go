@@ -52,6 +52,26 @@ func (c *CancellationDb) Close() error {
 	return c.db.Close()
 }
 
+func (c *CancellationDb) UpdateValue(date string, value int) error {
+	_, err := c.db.Exec(upsertValueSQL, date, value)
+	if err != nil {
+		return fmt.Errorf("failed to update cancellation value: %w", err)
+	}
+	return nil
+}
+
+func (c *CancellationDb) GetValue(date string) (int, error) {
+	var value int
+	err := c.db.QueryRow(getValueSQL, date).Scan(&value)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("failed to get cancellation value: %w", err)
+	}
+	return value, nil
+}
+
 func (c *CancellationDb) Migrate() error {
 	driver, err := postgres.WithInstance(c.db, &postgres.Config{})
 	if err != nil {
