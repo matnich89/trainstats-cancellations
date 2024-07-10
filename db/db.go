@@ -29,18 +29,18 @@ type Database interface {
 type CancellationDb struct {
 	db         *sql.DB
 	migrateDir string
-	connStr    string
+	ConnStr    string
 }
 
 func NewCancellationDb(connStr, migrateDir string) *CancellationDb {
 	return &CancellationDb{
-		connStr:    connStr,
+		ConnStr:    connStr,
 		migrateDir: migrateDir,
 	}
 }
 
 func (c *CancellationDb) Connect() error {
-	db, err := sql.Open("postgres", c.connStr)
+	db, err := sql.Open("postgres", c.ConnStr)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
