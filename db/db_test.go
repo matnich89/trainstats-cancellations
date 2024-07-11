@@ -53,7 +53,7 @@ func setupTestDatabase(t *testing.T) (func(), error) {
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port.Port(), dbUser, dbPassword, dbName)
-	migrateDir := "/Users/mathewnicholls/repo/trainstats-cancellations/db/migrations"
+	migrateDir := "./migrations"
 
 	testDb = db.NewCancellationDb(connStr, migrateDir)
 	err = testDb.Connect()
