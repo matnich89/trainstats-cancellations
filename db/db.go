@@ -29,18 +29,18 @@ type Database interface {
 type CancellationDb struct {
 	db         *sql.DB
 	migrateDir string
-	connStr    string
+	ConnStr    string
 }
 
 func NewCancellationDb(connStr, migrateDir string) *CancellationDb {
 	return &CancellationDb{
-		connStr:    connStr,
+		ConnStr:    connStr,
 		migrateDir: migrateDir,
 	}
 }
 
 func (c *CancellationDb) Connect() error {
-	db, err := sql.Open("postgres", c.connStr)
+	db, err := sql.Open("postgres", c.ConnStr)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -50,6 +50,26 @@ func (c *CancellationDb) Connect() error {
 
 func (c *CancellationDb) Close() error {
 	return c.db.Close()
+}
+
+func (c *CancellationDb) UpdateValue(date string, value int) error {
+	_, err := c.db.Exec(upsertValueSQL, date, value)
+	if err != nil {
+		return fmt.Errorf("failed to update cancellation value: %w", err)
+	}
+	return nil
+}
+
+func (c *CancellationDb) GetValue(date string) (int, error) {
+	var value int
+	err := c.db.QueryRow(getValueSQL, date).Scan(&value)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("failed to get cancellation value: %w", err)
+	}
+	return value, nil
 }
 
 func (c *CancellationDb) Migrate() error {
