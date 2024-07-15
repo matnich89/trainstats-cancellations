@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-redis/redis/v8"
 	nr "github.com/matnich89/national-rail-client/nationalrail"
@@ -47,7 +48,7 @@ func (a *App) Run() {
 	a.wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		if err := a.serve(); err != nil {
+		if err := a.serve(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("Server error: %v", err)
 		}
 	}(a.wg)
