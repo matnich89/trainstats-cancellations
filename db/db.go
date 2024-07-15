@@ -9,21 +9,23 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"log"
+	"time"
 )
 
 const (
-	upsertValueSQL = `
-		INSERT INTO cancellations (date, value)
-		VALUES ($1, $2)
-		ON CONFLICT (date) DO UPDATE SET value = $2
-	`
-	getValueSQL = `SELECT value FROM cancellations WHERE date = $1`
+	insertCancellationSQL = `
+       INSERT INTO cancellations (train_id, operator, cancellation_date, cancellation_reason)
+       VALUES ($1, $2, $3, $4)
+    `
+	getCancellationCountSQL = `SELECT COUNT(*) FROM cancellations WHERE DATE(cancellation_date) = $1`
 )
 
 type Database interface {
 	Connect() error
 	Close() error
 	Migrate() error
+	InsertCancellation(trainID, operator string, cancellationDate time.Time, cancellationReason string) error
+	GetCancellationCountForDate(date time.Time) (int, error)
 }
 
 type CancellationDb struct {
@@ -44,6 +46,10 @@ func (c *CancellationDb) Connect() error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	err = db.Ping()
+	if err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
 	c.db = db
 	return nil
 }
@@ -52,24 +58,24 @@ func (c *CancellationDb) Close() error {
 	return c.db.Close()
 }
 
-func (c *CancellationDb) UpdateValue(date string, value int) error {
-	_, err := c.db.Exec(upsertValueSQL, date, value)
+func (c *CancellationDb) InsertCancellation(trainID, operator string, cancellationDate time.Time, cancellationReason string) error {
+	_, err := c.db.Exec(insertCancellationSQL, trainID, operator, cancellationDate, cancellationReason)
 	if err != nil {
-		return fmt.Errorf("failed to update cancellation value: %w", err)
+		return fmt.Errorf("failed to insert cancellation: %w", err)
 	}
 	return nil
 }
 
-func (c *CancellationDb) GetValue(date string) (int, error) {
-	var value int
-	err := c.db.QueryRow(getValueSQL, date).Scan(&value)
+func (c *CancellationDb) GetCancellationCountForDate(date time.Time) (int, error) {
+	var count int
+	err := c.db.QueryRow(getCancellationCountSQL, date.Format("2006-01-02")).Scan(&count)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
 		}
-		return 0, fmt.Errorf("failed to get cancellation value: %w", err)
+		return 0, fmt.Errorf("failed to get cancellation count: %w", err)
 	}
-	return value, nil
+	return count, nil
 }
 
 func (c *CancellationDb) Migrate() error {

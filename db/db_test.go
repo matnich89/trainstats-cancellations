@@ -85,37 +85,45 @@ func TestCancellationDb(t *testing.T) {
 	}
 	defer cleanup()
 
-	t.Run("UpdateAndGetValue", func(t *testing.T) {
-		date := time.Now().Format("2006-01-02")
-		value := 42
+	t.Run("InsertCancellationAndGetCount", func(t *testing.T) {
+		date := time.Now().UTC().Truncate(24 * time.Hour)
 
-		err := testDb.UpdateValue(date, value)
-		assert.NoError(t, err)
+		for i := 0; i < 3; i++ {
+			trainID := fmt.Sprintf("TRAIN-%d", i+1)
+			err := testDb.InsertCancellation(trainID, "TestOperator", date, "Test Reason")
+			assert.NoError(t, err)
+		}
 
-		retrievedValue, err := testDb.GetValue(date)
+		count, err := testDb.GetCancellationCountForDate(date)
 		assert.NoError(t, err)
-		assert.Equal(t, value, retrievedValue)
+		assert.Equal(t, 3, count)
 
-		nonExistentDate := "2000-01-01"
-		retrievedValue, err = testDb.GetValue(nonExistentDate)
+		differentDate := date.AddDate(0, 0, -1)
+		count, err = testDb.GetCancellationCountForDate(differentDate)
 		assert.NoError(t, err)
-		assert.Equal(t, 0, retrievedValue)
+		assert.Equal(t, 0, count)
 	})
 
-	t.Run("UpdateValue_Conflict", func(t *testing.T) {
-		date := time.Now().Format("2006-01-02")
-		firstValue := 1
-		secondValue := 2
+	t.Run("InsertCancellationsForMultipleDates", func(t *testing.T) {
+		baseDate := time.Now().UTC().AddDate(0, -1, 0).Truncate(24 * time.Hour)
 
-		err := testDb.UpdateValue(date, firstValue)
-		assert.NoError(t, err)
+		for i := 0; i < 3; i++ {
+			date := baseDate.AddDate(0, 0, i)
+			trainID := fmt.Sprintf("TRAIN-%d", i+1)
+			err := testDb.InsertCancellation(trainID, "TestOperator", date, "Test Reason")
+			assert.NoError(t, err)
+		}
 
-		err = testDb.UpdateValue(date, secondValue)
-		assert.NoError(t, err)
+		for i := 0; i < 3; i++ {
+			date := baseDate.AddDate(0, 0, i)
+			count, err := testDb.GetCancellationCountForDate(date)
+			assert.NoError(t, err)
+			assert.Equal(t, 1, count)
+		}
 
-		retrievedValue, err := testDb.GetValue(date)
+		noCanDate := baseDate.AddDate(0, 0, -1)
+		count, err := testDb.GetCancellationCountForDate(noCanDate)
 		assert.NoError(t, err)
-		assert.Equal(t, secondValue, retrievedValue)
+		assert.Equal(t, 0, count)
 	})
-
 }
