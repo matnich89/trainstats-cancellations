@@ -55,6 +55,7 @@ func (w *Worker) Listen(ctx context.Context) {
 
 		if err != nil {
 			log.Printf("Worker %d: Error unmarshalling departure: %v", w.id, err)
+			continue
 		}
 
 		serviceDetails, err := w.nrClient.GetServiceDetails(departureId.ID)

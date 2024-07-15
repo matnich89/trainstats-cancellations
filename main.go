@@ -20,9 +20,7 @@ func main() {
 		log.Fatalf("could not load config %v", err)
 	}
 
-	connStr := "postgres://postgres:postgres@localhost/cancellations?sslmode=disable"
-	migrateDir := "./db/migrations"
-	database := db.NewCancellationDb(connStr, migrateDir)
+	database := db.NewCancellationDb(c.DatabaseConnection, c.DatabaseMigrationDir)
 
 	err = database.Connect()
 	if err != nil {
@@ -45,7 +43,7 @@ func main() {
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: c.RedisAddress,
 	})
 
 	httpHandler := http_handler.Handler{}
