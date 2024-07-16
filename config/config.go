@@ -22,10 +22,11 @@ func Load() (*Config, error) {
 	}
 
 	return &Config{
-		NationalRailApiKey: getEnv("NATIONAL_RAIL_API_KEY"),
-		RedisAddress:       getEnv("REDIS_ADDRESS"),
-		TrainIdQueueName:   getEnv("TRAIN_ID_QUEUE_NAME"),
-		DatabaseConnection: getEnv("DATABASE_CONNECTION"),
+		NationalRailApiKey:   getEnv("NATIONAL_RAIL_API_KEY"),
+		RedisAddress:         getEnv("REDIS_ADDRESS"),
+		TrainIdQueueName:     getEnv("TRAIN_ID_QUEUE_NAME"),
+		DatabaseConnection:   getEnv("DATABASE_CONNECTION"),
+		DatabaseMigrationDir: "db/migrations",
 	}, nil
 }
 

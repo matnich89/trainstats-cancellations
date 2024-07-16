@@ -26,8 +26,14 @@ type App struct {
 }
 
 func NewApp(router *chi.Mux, httpHandler *httphandler.Handler,
-	redisClient *redis.Client, nrClient *nr.Client, database db.Database, wg *sync.WaitGroup) *App {
-	return &App{router: router, httpHandler: httpHandler, redisClient: redisClient, nrClient: nrClient, database: database, wg: wg}
+	redisClient *redis.Client, nrClient *nr.Client, database db.Database, numWorkers int, wg *sync.WaitGroup) *App {
+	return &App{router: router,
+		httpHandler: httpHandler,
+		redisClient: redisClient,
+		nrClient:    nrClient,
+		database:    database,
+		numWorkers:  numWorkers,
+		wg:          wg}
 }
 
 func (a *App) SetupWorkers() {

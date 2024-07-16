@@ -28,7 +28,10 @@ func main() {
 	} else {
 		log.Println("connected to db :)")
 	}
-	defer database.Close()
+
+	defer func(database *db.CancellationDb) {
+		_ = database.Close()
+	}(database)
 
 	err = database.Migrate()
 	if err != nil {
@@ -48,7 +51,7 @@ func main() {
 
 	httpHandler := http_handler.Handler{}
 
-	app := cmd.NewApp(chi.NewMux(), &httpHandler, redisClient, nrClient, database, &sync.WaitGroup{})
+	app := cmd.NewApp(chi.NewMux(), &httpHandler, redisClient, nrClient, database, 1, &sync.WaitGroup{})
 
 	app.SetupWorkers()
 

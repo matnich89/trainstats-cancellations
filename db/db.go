@@ -59,7 +59,8 @@ func (c *CancellationDb) Close() error {
 }
 
 func (c *CancellationDb) InsertCancellation(trainID, operator string, cancellationDate time.Time, cancellationReason string) error {
-	_, err := c.db.Exec(insertCancellationSQL, trainID, operator, cancellationDate, cancellationReason)
+	res, err := c.db.Exec(insertCancellationSQL, trainID, operator, cancellationDate, cancellationReason)
+	log.Println(res)
 	if err != nil {
 		return fmt.Errorf("failed to insert cancellation: %w", err)
 	}

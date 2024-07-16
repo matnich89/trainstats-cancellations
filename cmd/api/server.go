@@ -12,7 +12,7 @@ import (
 
 func (a *App) serve() error {
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":8081",
 		Handler:      a.router,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

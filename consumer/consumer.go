@@ -33,7 +33,6 @@ func NewConsumerWorker(id int, nrClient *nr.Client, redisClient *redis.Client, d
 
 func (w *Worker) Listen(ctx context.Context) {
 	defer w.wg.Done()
-
 	for {
 		msg, err := w.redisClient.BRPop(ctx, 0*time.Second, "departures-queue").Result()
 		if err != nil {
@@ -67,10 +66,16 @@ func (w *Worker) Listen(ctx context.Context) {
 
 		if serviceDetails.IsCancelled {
 			log.Println("service cancelled persisting...")
-			err := w.database.Migrate()
+			var reason string = "NO REASON GIVEN"
+			if serviceDetails.CancelReason != nil {
+				reason = *serviceDetails.CancelReason
+			}
+			err := w.database.InsertCancellation(departureId.ID, serviceDetails.Operator.Name, time.Now().Truncate(24*time.Hour), reason)
 			if err != nil {
 				log.Printf("Worker %d: Error migrating database: %v", w.id, err)
 			}
+		} else {
+			log.Println("train not cancelled")
 		}
 	}
 
