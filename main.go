@@ -51,7 +51,7 @@ func main() {
 
 	httpHandler := http_handler.Handler{}
 
-	app := cmd.NewApp(chi.NewMux(), &httpHandler, redisClient, nrClient, database, 1, &sync.WaitGroup{})
+	app := cmd.NewApp(chi.NewMux(), &httpHandler, redisClient, nrClient, database, 2, &sync.WaitGroup{})
 
 	app.SetupWorkers()
 
